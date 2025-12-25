@@ -36,3 +36,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
     
     <main class="main-content">
         <div class="container">
+            <?php
+            // Display success message if exists
+            if (isset($_SESSION['success_message'])) {
+                echo '<div class="alert alert-success">' . h($_SESSION['success_message']) . '</div>';
+                unset($_SESSION['success_message']);
+            }
+            
+            // Display error message if exists
+            if (isset($_SESSION['error_message'])) {
+                echo '<div class="alert alert-error">' . h($_SESSION['error_message']) . '</div>';
+                unset($_SESSION['error_message']);
+            }
+            ?>

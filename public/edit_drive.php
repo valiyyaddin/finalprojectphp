@@ -1,18 +1,34 @@
 <?php
 /**
- * Add Driving Experience Page
+ * Edit Driving Experience Page
  * 
- * Form to enter a new driving experience with validation
- * Mobile-friendly responsive design
+ * Form to edit an existing driving experience with validation
  */
 
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 
-$page_title = 'Add New Drive';
+$page_title = 'Edit Drive';
 
 // Get database connection
 $pdo = getDbConnection();
+
+// Get encoded ID from URL
+$encodedId = $_GET['id'] ?? null;
+$experienceId = decodeId($encodedId);
+
+if (!$experienceId) {
+    $_SESSION['error_message'] = "Invalid driving experience ID.";
+    redirect('summary.php');
+}
+
+// Load experience using OOP
+$experience = DrivingExperience::findById($pdo, $experienceId);
+
+if (!$experience) {
+    $_SESSION['error_message'] = "Driving experience not found.";
+    redirect('summary.php');
+}
 
 // Initialize variables
 $errors = [];
@@ -20,49 +36,42 @@ $success = false;
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Create experience object from POST data
-    $experience = new DrivingExperience([
-        'drive_datetime' => $_POST['drive_datetime'] ?? '',
-        'km' => $_POST['km'] ?? '',
-        'weather_id' => $_POST['weather_id'] ?? '',
-        'traffic_id' => $_POST['traffic_id'] ?? '',
-        'supervisor_id' => $_POST['supervisor_id'] ?? '',
-        'road_type_ids' => $_POST['road_types'] ?? [],
-        'notes' => $_POST['notes'] ?? ''
-    ]);
+    // Update experience object with form data
+    $experience->setDriveDatetime($_POST['drive_datetime'] ?? '');
+    $experience->setKm($_POST['km'] ?? '');
+    $experience->setWeatherId($_POST['weather_id'] ?? '');
+    $experience->setTrafficId($_POST['traffic_id'] ?? '');
+    $experience->setSupervisorId($_POST['supervisor_id'] ?? '');
+    $experience->setRoadTypeIds($_POST['road_types'] ?? []);
+    $experience->setNotes($_POST['notes'] ?? '');
     
-    // Validate using OOP method
+    // Validate
     $errors = $experience->validate();
     
-    // If no errors, save to database using OOP
+    // If no errors, save to database
     if (empty($errors)) {
-        $experienceId = $experience->save($pdo);
-        
-        if ($experienceId) {
+        if ($experience->save($pdo)) {
             // Success - redirect to summary page
-            $_SESSION['success_message'] = "Driving experience added successfully!";
+            $_SESSION['success_message'] = "Driving experience updated successfully!";
             redirect('summary.php');
         } else {
-            $errors[] = "Failed to save driving experience. Please try again.";
+            $errors[] = "Failed to update driving experience. Please try again.";
         }
     }
 }
 
-// Get dropdown data using OOP classes
+// Get dropdown data using OOP
 $weatherOptions = Weather::getAll($pdo);
 $trafficOptions = Traffic::getAll($pdo);
 $supervisorOptions = Supervisor::getAll($pdo);
 $roadTypeOptions = RoadType::getAll($pdo);
-
-// Get current datetime for default value
-$currentDatetime = date('Y-m-d\TH:i');
 
 require_once '../includes/header.php';
 ?>
 
 <div class="card">
     <div class="card-header">
-        <h1 class="card-title">Add New Driving Experience</h1>
+        <h1 class="card-title">Edit Driving Experience</h1>
     </div>
     
     <?php if (!empty($errors)): ?>
@@ -76,7 +85,7 @@ require_once '../includes/header.php';
         </div>
     <?php endif; ?>
     
-    <form method="POST" action="add_drive.php" novalidate>
+    <form method="POST" action="edit_drive.php?id=<?php echo h($encodedId); ?>" novalidate>
         <!-- Date and Time -->
         <div class="form-group">
             <label for="drive_datetime" class="required">Date & Time</label>
@@ -85,7 +94,7 @@ require_once '../includes/header.php';
                 id="drive_datetime" 
                 name="drive_datetime" 
                 class="form-control"
-                value="<?php echo isset($_POST['drive_datetime']) ? h($_POST['drive_datetime']) : $currentDatetime; ?>"
+                value="<?php echo h(date('Y-m-d\TH:i', strtotime($experience->getDriveDatetime()))); ?>"
                 required
             >
         </div>
@@ -102,7 +111,7 @@ require_once '../includes/header.php';
                 min="0" 
                 step="0.1"
                 placeholder="e.g., 25.5"
-                value="<?php echo isset($_POST['km']) ? h($_POST['km']) : ''; ?>"
+                value="<?php echo h($experience->getKm()); ?>"
                 required
             >
         </div>
@@ -115,7 +124,7 @@ require_once '../includes/header.php';
                 <?php foreach ($weatherOptions as $weather): ?>
                     <option 
                         value="<?php echo h($weather['id']); ?>"
-                        <?php echo (isset($_POST['weather_id']) && $_POST['weather_id'] == $weather['id']) ? 'selected' : ''; ?>
+                        <?php echo ($experience->getWeatherId() == $weather['id']) ? 'selected' : ''; ?>
                     >
                         <?php echo h($weather['label']); ?>
                     </option>
@@ -131,7 +140,7 @@ require_once '../includes/header.php';
                 <?php foreach ($trafficOptions as $traffic): ?>
                     <option 
                         value="<?php echo h($traffic['id']); ?>"
-                        <?php echo (isset($_POST['traffic_id']) && $_POST['traffic_id'] == $traffic['id']) ? 'selected' : ''; ?>
+                        <?php echo ($experience->getTrafficId() == $traffic['id']) ? 'selected' : ''; ?>
                     >
                         <?php echo h($traffic['label']); ?>
                     </option>
@@ -147,7 +156,7 @@ require_once '../includes/header.php';
                 <?php foreach ($supervisorOptions as $supervisor): ?>
                     <option 
                         value="<?php echo h($supervisor['id']); ?>"
-                        <?php echo (isset($_POST['supervisor_id']) && $_POST['supervisor_id'] == $supervisor['id']) ? 'selected' : ''; ?>
+                        <?php echo ($experience->getSupervisorId() == $supervisor['id']) ? 'selected' : ''; ?>
                     >
                         <?php echo h($supervisor['name']); ?>
                     </option>
@@ -159,14 +168,17 @@ require_once '../includes/header.php';
         <div class="form-group">
             <label class="required">Road Types (Select all that apply)</label>
             <div class="checkbox-group">
-                <?php foreach ($roadTypeOptions as $roadType): ?>
+                <?php 
+                $selectedRoadTypes = $experience->getRoadTypeIds();
+                foreach ($roadTypeOptions as $roadType): 
+                ?>
                     <div class="checkbox-item">
                         <input 
                             type="checkbox" 
                             id="road_type_<?php echo h($roadType['id']); ?>" 
                             name="road_types[]" 
                             value="<?php echo h($roadType['id']); ?>"
-                            <?php echo (isset($_POST['road_types']) && in_array($roadType['id'], $_POST['road_types'])) ? 'checked' : ''; ?>
+                            <?php echo in_array($roadType['id'], $selectedRoadTypes) ? 'checked' : ''; ?>
                         >
                         <label for="road_type_<?php echo h($roadType['id']); ?>">
                             <?php echo h($roadType['label']); ?>
@@ -185,20 +197,20 @@ require_once '../includes/header.php';
                 class="form-control" 
                 rows="4"
                 placeholder="Add any additional notes about this driving experience..."
-            ><?php echo isset($_POST['notes']) ? h($_POST['notes']) : ''; ?></textarea>
+            ><?php echo h($experience->getNotes()); ?></textarea>
         </div>
         
-        <!-- Submit Button -->
+        <!-- Submit Buttons -->
         <div class="form-group">
             <button type="submit" class="btn btn-primary btn-block">
-                Save Driving Experience
+                Update Driving Experience
             </button>
         </div>
     </form>
 </div>
 
 <div class="text-center mt-1">
-    <a href="summary.php" class="btn btn-secondary">View All Experiences</a>
+    <a href="summary.php" class="btn btn-secondary">Cancel & Return to Summary</a>
 </div>
 
 <?php require_once '../includes/footer.php'; ?>

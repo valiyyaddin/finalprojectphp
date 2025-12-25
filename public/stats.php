@@ -20,6 +20,11 @@ $kmByWeather = getKmByWeather($pdo);
 $drivesByRoadType = getDrivesByRoadType($pdo);
 $kmByMonth = getKmByMonth($pdo);
 
+// Get total km for gauge chart
+$totalKm = getTotalKm($pdo);
+$totalDrives = $pdo->query("SELECT COUNT(*) as count FROM driving_experience")->fetch()['count'];
+$avgKm = $totalDrives > 0 ? $totalKm / $totalDrives : 0;
+
 // Prepare data for ChartJS (JSON format)
 $weatherLabels = array_map(function($item) { return $item['label']; }, $kmByWeather);
 $weatherData = array_map(function($item) { return floatval($item['total_km']); }, $kmByWeather);
@@ -41,6 +46,18 @@ require_once '../includes/header.php';
     <p class="text-muted text-center mb-2">
         Analyze your driving patterns with interactive charts and visualizations.
     </p>
+    
+    <!-- Total KM Gauge Chart (NEW) -->
+    <section class="mb-2">
+        <h2 class="mb-1">Total Distance Progress</h2>
+        <div class="chart-container" style="height: 250px;">
+            <canvas id="totalKmGauge"></canvas>
+        </div>
+        <p class="text-center text-muted">
+            <strong><?php echo formatNumber($totalKm); ?> km</strong> traveled across 
+            <strong><?php echo number_format($totalDrives); ?></strong> driving sessions
+        </p>
+    </section>
     
     <!-- Chart 1: Total KM by Weather -->
     <section class="mb-2">
@@ -119,6 +136,59 @@ require_once '../includes/header.php';
 
 <script>
 // Chart.js Configuration and Initialization
+
+// NEW: Total KM Gauge (Doughnut Chart)
+const totalKmCtx = document.getElementById('totalKmGauge').getContext('2d');
+const totalKmGauge = new Chart(totalKmCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Total Distance', 'Average per Drive', 'Remaining to Goal'],
+        datasets: [{
+            data: [<?php echo $totalKm; ?>, <?php echo $avgKm; ?>, <?php echo max(0, 500 - $totalKm); ?>],
+            backgroundColor: [
+                'rgba(37, 99, 235, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(229, 231, 235, 0.3)'
+            ],
+            borderColor: [
+                'rgba(37, 99, 235, 1)',
+                'rgba(16, 185, 129, 1)',
+                'rgba(229, 231, 235, 0.5)'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'bottom'
+            },
+            title: {
+                display: true,
+                text: 'Driving Progress Overview (Goal: 500 km)',
+                font: {
+                    size: 14,
+                    weight: 'bold'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        label += context.parsed.toFixed(2) + ' km';
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
 
 // Chart 1: Total KM by Weather (Bar Chart)
 const weatherCtx = document.getElementById('weatherChart').getContext('2d');

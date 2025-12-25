@@ -264,6 +264,37 @@ textarea.form-control {
     display: block;
 }
 
+/* Action buttons for tables */
+.btn-action {
+    display: inline-block;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    margin: 0 0.2rem;
+}
+
+.btn-edit {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-edit:hover {
+    background-color: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+.btn-delete {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #dc2626;
+    transform: scale(1.1);
+}
+
 /* ========== ALERTS & MESSAGES ========== */
 .alert {
     padding: 1rem;

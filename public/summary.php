@@ -108,10 +108,13 @@ require_once '../includes/header.php';
                         <th>Supervisor</th>
                         <th>Road Types</th>
                         <th>Notes</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($experiences as $exp): ?>
+                    <?php foreach ($experiences as $exp): 
+                        $encodedId = encodeId($exp['id']); // Anonymize ID
+                    ?>
                         <tr>
                             <td><?php echo formatDateTime($exp['drive_datetime'], 'M d, Y H:i'); ?></td>
                             <td><?php echo formatNumber($exp['km']); ?></td>
@@ -120,6 +123,19 @@ require_once '../includes/header.php';
                             <td><?php echo h($exp['supervisor']); ?></td>
                             <td><?php echo h($exp['road_types']); ?></td>
                             <td><?php echo h(substr($exp['notes'] ?? '', 0, 100)); ?><?php echo strlen($exp['notes'] ?? '') > 100 ? '...' : ''; ?></td>
+                            <td style="white-space: nowrap;">
+                                <a href="edit_drive.php?id=<?php echo h($encodedId); ?>" 
+                                   class="btn-action btn-edit" 
+                                   title="Edit">
+                                    ✏️
+                                </a>
+                                <a href="delete_drive.php?id=<?php echo h($encodedId); ?>" 
+                                   class="btn-action btn-delete" 
+                                   title="Delete"
+                                   onclick="return confirm('Are you sure you want to delete this experience?');">
+                                    🗑️
+                                </a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

@@ -5,6 +5,69 @@
  * This file contains reusable functions for the application
  */
 
+// Include OOP classes
+require_once __DIR__ . '/classes.php';
+
+/**
+ * ID Anonymization Functions for Session Security
+ * Encode/decode IDs to hide real database identifiers
+ */
+
+// Secret key for encoding (should be in config in production)
+define('ENCODE_KEY', 'DriveLog2025!SecureKey#');
+
+/**
+ * Encode ID to obfuscated string
+ */
+function encodeId($id) {
+    if (empty($id)) return null;
+    $encoded = base64_encode($id . '|' . hash('sha256', $id . ENCODE_KEY));
+    return rtrim(strtr($encoded, '+/', '-_'), '=');
+}
+
+/**
+ * Decode obfuscated string back to ID
+ */
+function decodeId($encoded) {
+    if (empty($encoded)) return null;
+    $encoded = str_pad(strtr($encoded, '-_', '+/'), strlen($encoded) % 4, '=', STR_PAD_RIGHT);
+    $decoded = base64_decode($encoded);
+    if ($decoded === false) return null;
+    
+    list($id, $hash) = explode('|', $decoded);
+    if (hash('sha256', $id . ENCODE_KEY) === $hash) {
+        return intval($id);
+    }
+    return null;
+}
+
+/**
+ * Store encoded ID in session
+ */
+function storeEncodedId($key, $id) {
+    if (!isset($_SESSION['encoded_ids'])) {
+        $_SESSION['encoded_ids'] = [];
+    }
+    $encoded = encodeId($id);
+    $_SESSION['encoded_ids'][$key] = ['encoded' => $encoded, 'id' => $id];
+    return $encoded;
+}
+
+/**
+ * Retrieve original ID from session by encoded value
+ */
+function retrieveEncodedId($encoded) {
+    if (!isset($_SESSION['encoded_ids'])) return null;
+    
+    foreach ($_SESSION['encoded_ids'] as $data) {
+        if ($data['encoded'] === $encoded) {
+            return $data['id'];
+        }
+    }
+    
+    return decodeId($encoded); // Fallback to decode
+}
+
 /**
  * Sanitize and escape output for HTML
  * 

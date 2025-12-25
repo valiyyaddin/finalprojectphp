@@ -10,26 +10,39 @@ This application is a full-featured driving log management system that demonstra
 
 1. **Many-to-Many Relationship Implementation**: The app implements a proper many-to-many relationship between driving experiences and road types through a junction table (`experience_road_type`), allowing each drive to be associated with multiple road types (e.g., Highway + Residential + Parking Lot).
 
-2. **Mobile-First Responsive Design**: The entry form uses CSS Grid and Flexbox with media queries to provide an optimized mobile experience with larger touch targets, while the summary tables are desktop-optimized with horizontal scrolling support.
+2. **Object-Oriented Programming (OOP)**: Full OOP implementation with classes for DrivingExperience, Weather, Traffic, Supervisor, and RoadType. Each class includes properties, methods for CRUD operations, validation, and data management.
 
-3. **ChartJS Data Visualization**: Three interactive charts display statistics:
+3. **ID Anonymization & Session Security**: All database IDs are encoded/encrypted when passed in URLs and stored in sessions, preventing direct exposure of primary keys. Uses SHA-256 hashing with secret keys for enhanced security.
+
+4. **Complete CRUD Operations**: 
+   - **Create**: Add new driving experiences
+   - **Read**: View summary tables and statistics
+   - **Update**: Edit existing experiences with pre-populated forms
+   - **Delete**: Remove experiences with confirmation page
+
+5. **Mobile-First Responsive Design**: The entry form uses CSS Grid and Flexbox with media queries to provide an optimized mobile experience with larger touch targets, while the summary tables are desktop-optimized with horizontal scrolling support.
+
+6. **ChartJS Data Visualization**: Four interactive charts display statistics:
+   - Doughnut/gauge chart for total km progress with visual goal tracking
    - Bar chart for total kilometers by weather condition
    - Horizontal bar chart for drive counts by road type
    - Line chart showing distance trends over months
 
-4. **Real-time Form Defaults**: The add drive form automatically populates with the current date/time using HTML5 `datetime-local` input, providing a streamlined user experience.
+7. **Real-time Form Defaults**: The add drive form automatically populates with the current date/time using HTML5 `datetime-local` input, providing a streamlined user experience.
 
-5. **Date Range Filtering**: Summary and statistics pages support optional date range filtering, allowing users to analyze specific time periods.
+8. **Date Range Filtering**: Summary and statistics pages support optional date range filtering, allowing users to analyze specific time periods.
 
-6. **Dynamic Variable Management**: Users can add custom weather conditions, traffic levels, road types, and supervisors without modifying the database directly.
+9. **Dynamic Variable Management**: Users can add custom weather conditions, traffic levels, road types, and supervisors without modifying the database directly.
 
-7. **Security-First Architecture**: All database queries use PDO prepared statements, output is escaped with `htmlspecialchars()`, and input validation prevents invalid data submission.
+10. **Security-First Architecture**: All database queries use PDO prepared statements, output is escaped with `htmlspecialchars()`, input validation prevents invalid data submission, and transactions ensure data integrity.
 
-8. **Session-Based Success Messages**: Flash messages persist across page redirects using PHP sessions, providing clear user feedback.
+11. **Session-Based Flash Messages**: Success and error messages persist across page redirects using PHP sessions, providing clear user feedback for all operations.
 
-9. **Aggregate Statistics Dashboard**: The home page displays real-time statistics including total drives, total kilometers, and average distance per drive.
+12. **Aggregate Statistics Dashboard**: The home page displays real-time statistics including total drives, total kilometers, and average distance per drive.
 
-10. **Semantic HTML5 Structure**: Uses proper semantic elements (`<header>`, `<nav>`, `<main>`, `<section>`, `<footer>`) for better accessibility and SEO.
+13. **Semantic HTML5 Structure**: Uses proper semantic elements (`<header>`, `<nav>`, `<main>`, `<section>`, `<footer>`) for better accessibility and SEO.
+
+14. **Enhanced User Experience**: Edit and delete actions with clear visual feedback, confirmation dialogs, and intuitive action buttons in the summary table.
 
 ## 🗂️ Project Structure
 
@@ -43,12 +56,15 @@ PhpFinalProject/
 ├── includes/
 │   ├── header.php            # Common header with navigation
 │   ├── footer.php            # Common footer
+│   ├── classes.php           # OOP classes (NEW)
 │   └── functions.php         # Reusable PHP functions library
 ├── public/
 │   ├── css/
 │   │   └── style.css         # Handwritten responsive CSS
 │   ├── index.php             # Home page / Dashboard
 │   ├── add_drive.php         # Add new driving experience form
+│   ├── edit_drive.php        # Edit existing experience (NEW)
+│   ├── delete_drive.php      # Delete with confirmation (NEW)
 │   ├── summary.php           # Summary table with total km
 │   ├── stats.php             # Statistics with ChartJS visualizations
 │   └── manage_variables.php  # Add/manage custom variables
@@ -284,10 +300,13 @@ if ($environment === 'development') {
 ### Core Functionality
 
 - ✅ **Add Driving Experience**: Mobile-optimized form with HTML5 inputs
-- ✅ **View Summary**: Sortable table with date range filtering
-- ✅ **Statistics Dashboard**: ChartJS visualizations
+- ✅ **Edit Driving Experience**: Pre-populated form with all existing data
+- ✅ **Delete Driving Experience**: Confirmation page with experience details
+- ✅ **View Summary**: Sortable table with date range filtering and action buttons
+- ✅ **Statistics Dashboard**: ChartJS visualizations with 4 different charts
 - ✅ **Manage Variables**: Add custom options dynamically
 - ✅ **Total KM Tracking**: Real-time aggregate calculations
+- ✅ **ID Anonymization**: Encrypted IDs in URLs and sessions
 
 ### Many-to-Many Implementation
 
@@ -298,18 +317,20 @@ The app demonstrates a proper many-to-many relationship:
 
 ### Charts & Visualizations
 
-1. **KM by Weather**: Bar chart showing total distance per weather condition
-2. **Drives by Road Type**: Horizontal bar chart of usage frequency
-3. **Monthly Trends**: Line chart showing distance over time
+1. **Total KM Gauge**: Doughnut chart showing progress toward goal (500 km)
+2. **KM by Weather**: Bar chart showing total distance per weather condition
+3. **Drives by Road Type**: Horizontal bar chart of usage frequency
+4. **Monthly Trends**: Line chart showing distance over time
 
 ## 🛠️ Technology Stack
 
-- **Backend**: PHP 7.4+ (no frameworks)
+- **Backend**: PHP 7.4+ (no frameworks) with OOP
 - **Database**: MySQL 5.7+ / MariaDB 10.2+
 - **Frontend**: HTML5, CSS3, JavaScript (ES6)
 - **Charts**: Chart.js 4.4.0 (CDN)
 - **Database Access**: PDO with prepared statements
 - **Design**: CSS Grid, Flexbox, Mobile-first responsive
+- **Security**: ID encryption, session management, input validation
 
 ## 📝 Usage Guide
 
@@ -326,7 +347,23 @@ The app demonstrates a proper many-to-many relationship:
    - Optional notes
 3. Click "Save Driving Experience"
 4. Redirected to summary page with success message
+### Editing a Driving Experience
 
+1. Navigate to "View Summary"
+2. Click the ✏️ edit button next to any experience
+3. Form pre-populates with existing data
+4. Modify any fields as needed
+5. Click "Update Driving Experience"
+6. Changes saved and redirected to summary
+
+### Deleting a Driving Experience
+
+1. Navigate to "View Summary"
+2. Click the 🗑️ delete button next to any experience
+3. Confirmation page shows experience details
+4. Click "Yes, Delete This Experience" to confirm
+5. Or click "Cancel, Keep This Experience" to abort
+6. Redirected to summary with appropriate message
 ### Viewing Summary
 
 1. Navigate to "View Summary"
@@ -351,17 +388,22 @@ The app demonstrates a proper many-to-many relationship:
 
 ## 🧪 Testing Checklist
 
-- [ ] Database connection successful
-- [ ] Add driving experience saves correctly
-- [ ] Many-to-many road types save properly
-- [ ] Summary table displays all data
-- [ ] Total KM calculates accurately
-- [ ] Date filtering works on summary page
-- [ ] All three charts render on stats page
-- [ ] Manage variables adds new options
-- [ ] Mobile responsive (test on phone/narrow window)
-- [ ] Form validation shows errors
-- [ ] Success messages display after actions
+- [x] Database connection successful
+- [x] Add driving experience saves correctly
+- [x] Edit driving experience updates correctly
+- [x] Delete driving experience removes record
+- [x] Many-to-many road types save properly
+- [x] Summary table displays all data with actions
+- [x] Total KM calculates accurately
+- [x] Date filtering works on summary page
+- [x] All four charts render on stats page
+- [x] Manage variables adds new options
+- [x] Mobile responsive (test on phone/narrow window)
+- [x] Form validation shows errors
+- [x] Success/error messages display after actions
+- [x] IDs are anonymized in URLs
+- [x] OOP classes function correctly
+- [x] Transactions handle multi-table operations
 
 ## 🐛 Troubleshooting
 
@@ -407,23 +449,27 @@ This project is created for educational purposes as part of a PHP final project.
 
 ### Best Practices Implemented
 
-1. **Separation of Concerns**: Logic separated into functions, includes, and pages
-2. **DRY Principle**: Reusable functions in `functions.php`
-3. **Security First**: Prepared statements, input validation, output escaping
+1. **Separation of Concerns**: Logic separated into classes, functions, includes, and pages
+2. **DRY Principle**: Reusable functions and OOP classes
+3. **Security First**: Prepared statements, input validation, output escaping, ID anonymization
 4. **Responsive Design**: Mobile-first CSS with media queries
 5. **Semantic HTML**: Proper use of HTML5 semantic elements
 6. **Accessibility**: Form labels, ARIA attributes where needed
-7. **Performance**: Single database connection, efficient queries
+7. **Performance**: Single database connection, efficient queries, transactions
+8. **OOP Design**: Classes for all entities with proper encapsulation
+9. **Session Security**: Encoded IDs, flash messages, data protection
 
 ## 🎯 Future Enhancements
 
 - User authentication and multi-user support
+- DataTable.js for advanced table sorting/filtering
 - Export to PDF/CSV functionality
 - More advanced filtering and search
 - Photo upload for driving experiences
 - GPS route tracking integration
 - Progress tracking toward license requirements
 - Email notifications for milestones
+- Full MVC architecture refactoring
 
 ## 📞 Support
 
