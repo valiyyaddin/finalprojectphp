@@ -14,10 +14,10 @@
 
 // Database configuration constants (Alwaysdata)
 // Database configuration constants (Alwaysdata)
-define('DB_HOST', 'mysql-valiyyadinaliyev.alwaysdata.net');  // Alwaysdata MySQL host
-define('DB_NAME', 'valiyyadinaliyev_finalproject');          // Your DB name
-define('DB_USER', '443293_valiyyad');                        // Your DB user
-define('DB_PASS', 'baki2020');                               // Your DB password
+define('DB_HOST', 'xxxxxxxxxxxxxxxx');  // Alwaysdata MySQL host
+define('DB_NAME', 'xxxxxxx');          // Your DB name
+define('DB_USER', 'xxxxxxxxxx');                        // Your DB user
+define('DB_PASS', 'xxxxxxxxx');                               // Your DB password
 define('DB_CHARSET', 'utf8mb4');
 // Character set
 
